@@ -18,10 +18,10 @@ export const DEFAULTS: AppState = {
   count: 5,
 };
 
-const SPACING_MIN = 100;
-const SPACING_MAX = 50_000;
-const COUNT_MIN = 1;
-const COUNT_MAX = 20;
+export const SPACING_MIN = 100;
+export const SPACING_MAX = 50_000;
+export const COUNT_MIN = 1;
+export const COUNT_MAX = 20;
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 19;
 
@@ -29,18 +29,18 @@ function clamp(n: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, n));
 }
 
+export function clampSpacing(metres: number): number {
+  return clamp(Math.round(metres), SPACING_MIN, SPACING_MAX);
+}
+
+export function clampCount(count: number): number {
+  return clamp(Math.round(count), COUNT_MIN, COUNT_MAX);
+}
+
 function parseNumber(value: string | null): number | null {
   if (value === null || value === "") return null;
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
-}
-
-export function formatSpacing(metres: number): string {
-  if (metres >= 1000) {
-    const km = metres / 1000;
-    return `${km % 1 === 0 ? km.toFixed(0) : km.toFixed(1)} km`;
-  }
-  return `${metres} m`;
 }
 
 export function parseUrl(search = window.location.search): AppState {
@@ -71,14 +71,10 @@ export function parseUrl(search = window.location.search): AppState {
   if (z !== null) state.zoom = clamp(Math.round(z), ZOOM_MIN, ZOOM_MAX);
 
   const spacing = parseNumber(params.get("spacing"));
-  if (spacing !== null) {
-    state.spacing = clamp(Math.round(spacing / 100) * 100, SPACING_MIN, SPACING_MAX);
-  }
+  if (spacing !== null) state.spacing = clampSpacing(spacing);
 
   const count = parseNumber(params.get("count"));
-  if (count !== null) {
-    state.count = clamp(Math.round(count), COUNT_MIN, COUNT_MAX);
-  }
+  if (count !== null) state.count = clampCount(count);
 
   return state;
 }

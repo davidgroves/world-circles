@@ -1,4 +1,12 @@
-import { formatSpacing, type AppState } from "./state";
+import {
+  COUNT_MAX,
+  COUNT_MIN,
+  SPACING_MAX,
+  SPACING_MIN,
+  clampCount,
+  clampSpacing,
+  type AppState,
+} from "./state";
 
 export type UiController = {
   sync: (state: AppState) => void;
@@ -8,37 +16,80 @@ export function createUi(
   onSpacing: (spacing: number) => void,
   onCount: (count: number) => void,
 ): UiController {
-  const spacingInput = document.querySelector<HTMLInputElement>("#spacing");
-  const countInput = document.querySelector<HTMLInputElement>("#count");
-  const spacingValue = document.querySelector<HTMLOutputElement>("#spacing-value");
-  const countValue = document.querySelector<HTMLOutputElement>("#count-value");
+  const spacingRange = document.querySelector<HTMLInputElement>("#spacing");
+  const countRange = document.querySelector<HTMLInputElement>("#count");
+  const spacingNumber = document.querySelector<HTMLInputElement>("#spacing-number");
+  const countNumber = document.querySelector<HTMLInputElement>("#count-number");
 
-  if (!spacingInput || !countInput || !spacingValue || !countValue) {
+  if (!spacingRange || !countRange || !spacingNumber || !countNumber) {
     throw new Error("Missing control elements");
   }
 
-  function renderLabels(spacing: number, count: number): void {
-    spacingValue!.textContent = formatSpacing(spacing);
-    countValue!.textContent = String(count);
+  function showSpacing(spacing: number): void {
+    spacingRange!.value = String(spacing);
+    spacingNumber!.value = String(spacing);
   }
 
-  spacingInput.addEventListener("input", () => {
-    const spacing = Number(spacingInput.value);
-    renderLabels(spacing, Number(countInput.value));
+  function showCount(count: number): void {
+    countRange!.value = String(count);
+    countNumber!.value = String(count);
+  }
+
+  function commitSpacing(raw: number): void {
+    const spacing = clampSpacing(raw);
+    showSpacing(spacing);
     onSpacing(spacing);
+  }
+
+  function commitCount(raw: number): void {
+    const count = clampCount(raw);
+    showCount(count);
+    onCount(count);
+  }
+
+  spacingRange.addEventListener("input", () => {
+    commitSpacing(Number(spacingRange.value));
   });
 
-  countInput.addEventListener("input", () => {
-    const count = Number(countInput.value);
-    renderLabels(Number(spacingInput.value), count);
-    onCount(count);
+  countRange.addEventListener("input", () => {
+    commitCount(Number(countRange.value));
   });
+
+  spacingNumber.addEventListener("change", () => {
+    const raw = Number(spacingNumber.value);
+    if (!Number.isFinite(raw)) {
+      showSpacing(Number(spacingRange.value));
+      return;
+    }
+    commitSpacing(raw);
+  });
+
+  countNumber.addEventListener("change", () => {
+    const raw = Number(countNumber.value);
+    if (!Number.isFinite(raw)) {
+      showCount(Number(countRange.value));
+      return;
+    }
+    commitCount(raw);
+  });
+
+  spacingNumber.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") spacingNumber.blur();
+  });
+
+  countNumber.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") countNumber.blur();
+  });
+
+  spacingNumber.min = String(SPACING_MIN);
+  spacingNumber.max = String(SPACING_MAX);
+  countNumber.min = String(COUNT_MIN);
+  countNumber.max = String(COUNT_MAX);
 
   return {
     sync(state: AppState) {
-      spacingInput.value = String(state.spacing);
-      countInput.value = String(state.count);
-      renderLabels(state.spacing, state.count);
+      showSpacing(state.spacing);
+      showCount(state.count);
     },
   };
 }

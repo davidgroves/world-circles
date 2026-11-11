@@ -11,11 +11,23 @@
       <aside id="controls" aria-label="Circle controls">
         <h1>UK Circles</h1>
         <p class="hint">Click the map to set the centre.</p>
-        <label class="control">
-          <span class="control-label">
-            Spacing
-            <output id="spacing-value" for="spacing">1.0 km</output>
-          </span>
+        <div class="control">
+          <div class="control-label">
+            <label for="spacing">Spacing</label>
+            <span class="number-field">
+              <input
+                id="spacing-number"
+                type="number"
+                min="100"
+                max="50000"
+                step="1"
+                value="1000"
+                inputmode="numeric"
+                aria-label="Spacing in metres"
+              />
+              <span class="unit" aria-hidden="true">m</span>
+            </span>
+          </div>
           <input
             id="spacing"
             type="range"
@@ -23,15 +35,33 @@
             max="50000"
             step="100"
             value="1000"
+            aria-label="Spacing slider"
           />
-        </label>
-        <label class="control">
-          <span class="control-label">
-            Circles
-            <output id="count-value" for="count">5</output>
-          </span>
-          <input id="count" type="range" min="1" max="20" step="1" value="5" />
-        </label>
+        </div>
+        <div class="control">
+          <div class="control-label">
+            <label for="count">Circles</label>
+            <input
+              id="count-number"
+              type="number"
+              min="1"
+              max="20"
+              step="1"
+              value="5"
+              inputmode="numeric"
+              aria-label="Number of circles"
+            />
+          </div>
+          <input
+            id="count"
+            type="range"
+            min="1"
+            max="20"
+            step="1"
+            value="5"
+            aria-label="Circles slider"
+          />
+        </div>
       </aside>
     </div>
     <script type="module" src="/src/main.ts"></script>
