@@ -1,4 +1,4 @@
-# UK Circles
+# World Circles
 
 Click anywhere on an OpenStreetMap view to place a centre, then draw concentric circles with spacing and count controls. The URL stays in sync so views are shareable.
 
@@ -20,7 +20,7 @@ Deployed automatically on every push to `main` via GitHub Actions.
 
 One-time repo setting: **Settings → Pages → Source = GitHub Actions**.
 
-Live site: https://davidgroves.github.io/uk-circles/
+Live site: https://davidgroves.github.io/world-circles/
 
 ## URL parameters
 
