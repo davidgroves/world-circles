@@ -3,8 +3,11 @@ import {
   COUNT_MIN,
   SPACING_MAX,
   SPACING_MIN,
+  STEPS_MAX,
+  STEPS_MIN,
   clampCount,
   clampSpacing,
+  clampSteps,
   type AppState,
 } from "./state";
 
@@ -25,18 +28,23 @@ function formatMetresAsKm(metres: number): string {
 export function createUi(
   onSpacing: (spacing: number) => void,
   onCount: (count: number) => void,
+  onSteps: (steps: number) => void,
 ): UiController {
   const spacingRange = document.querySelector<HTMLInputElement>("#spacing");
   const countRange = document.querySelector<HTMLInputElement>("#count");
+  const stepsRange = document.querySelector<HTMLInputElement>("#steps");
   const spacingNumber = document.querySelector<HTMLInputElement>("#spacing-number");
   const countNumber = document.querySelector<HTMLInputElement>("#count-number");
+  const stepsNumber = document.querySelector<HTMLInputElement>("#steps-number");
   const spacingUnit = document.querySelector<HTMLElement>(".unit");
 
   if (
     !spacingRange ||
     !countRange ||
+    !stepsRange ||
     !spacingNumber ||
     !countNumber ||
+    !stepsNumber ||
     !spacingUnit
   ) {
     throw new Error("Missing control elements");
@@ -67,6 +75,11 @@ export function createUi(
     countNumber!.value = String(count);
   }
 
+  function showSteps(steps: number): void {
+    stepsRange!.value = String(steps);
+    stepsNumber!.value = String(steps);
+  }
+
   function parseSpacingInput(): number | null {
     const raw = Number(spacingNumber!.value);
     if (!Number.isFinite(raw)) return null;
@@ -88,12 +101,22 @@ export function createUi(
     onCount(count);
   }
 
+  function commitSteps(raw: number): void {
+    const steps = clampSteps(raw);
+    showSteps(steps);
+    onSteps(steps);
+  }
+
   spacingRange.addEventListener("input", () => {
     commitSpacingMetres(Number(spacingRange.value));
   });
 
   countRange.addEventListener("input", () => {
     commitCount(Number(countRange.value));
+  });
+
+  stepsRange.addEventListener("input", () => {
+    commitSteps(Number(stepsRange.value));
   });
 
   spacingNumber.addEventListener("change", () => {
@@ -114,6 +137,15 @@ export function createUi(
     commitCount(raw);
   });
 
+  stepsNumber.addEventListener("change", () => {
+    const raw = Number(stepsNumber.value);
+    if (!Number.isFinite(raw)) {
+      showSteps(Number(stepsRange.value));
+      return;
+    }
+    commitSteps(raw);
+  });
+
   spacingNumber.addEventListener("keydown", (e) => {
     if (e.key === "Enter") spacingNumber.blur();
   });
@@ -122,14 +154,24 @@ export function createUi(
     if (e.key === "Enter") countNumber.blur();
   });
 
+  stepsNumber.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") stepsNumber.blur();
+  });
+
   countNumber.min = String(COUNT_MIN);
   countNumber.max = String(COUNT_MAX);
   countRange.max = String(COUNT_MAX);
+
+  stepsNumber.min = String(STEPS_MIN);
+  stepsNumber.max = String(STEPS_MAX);
+  stepsRange.min = String(STEPS_MIN);
+  stepsRange.max = String(STEPS_MAX);
 
   return {
     sync(state: AppState) {
       showSpacing(state.spacing);
       showCount(state.count);
+      showSteps(state.steps);
     },
   };
 }

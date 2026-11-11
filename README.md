@@ -31,3 +31,6 @@ Live site: https://davidgroves.github.io/world-circles/
 | `z` | Zoom |
 | `spacing` | Ring spacing in metres |
 | `count` | Number of rings |
+| `steps` | Vertices sampled per geodesic ring (8–512) |
+
+Rings are drawn as WGS84 geodesic polygons via GeographicLib.

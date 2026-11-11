@@ -8,6 +8,8 @@ export type AppState = {
   spacing: number;
   /** Number of concentric rings. */
   count: number;
+  /** Vertices sampled per geodesic ring. */
+  steps: number;
 };
 
 export const DEFAULTS: AppState = {
@@ -16,12 +18,15 @@ export const DEFAULTS: AppState = {
   zoom: 6,
   spacing: 1000,
   count: 5,
+  steps: 128,
 };
 
 export const SPACING_MIN = 100;
 export const SPACING_MAX = 50_000;
 export const COUNT_MIN = 1;
 export const COUNT_MAX = 500;
+export const STEPS_MIN = 8;
+export const STEPS_MAX = 512;
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 19;
 
@@ -35,6 +40,10 @@ export function clampSpacing(metres: number): number {
 
 export function clampCount(count: number): number {
   return clamp(Math.round(count), COUNT_MIN, COUNT_MAX);
+}
+
+export function clampSteps(steps: number): number {
+  return clamp(Math.round(steps), STEPS_MIN, STEPS_MAX);
 }
 
 function parseNumber(value: string | null): number | null {
@@ -76,6 +85,9 @@ export function parseUrl(search = window.location.search): AppState {
   const count = parseNumber(params.get("count"));
   if (count !== null) state.count = clampCount(count);
 
+  const steps = parseNumber(params.get("steps"));
+  if (steps !== null) state.steps = clampSteps(steps);
+
   return state;
 }
 
@@ -86,6 +98,7 @@ export function writeUrl(state: AppState): void {
   params.set("z", String(state.zoom));
   params.set("spacing", String(state.spacing));
   params.set("count", String(state.count));
+  params.set("steps", String(state.steps));
 
   if (state.centre) {
     params.set("lat", state.centre.lat.toFixed(6));

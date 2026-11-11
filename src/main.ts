@@ -9,6 +9,11 @@ if (!mapEl) throw new Error("Missing #map");
 
 const state: AppState = parseUrl();
 
+function redrawFromState(): void {
+  map.setCircles(state.spacing, state.count, state.steps);
+  writeUrl(state);
+}
+
 const map = createMap(
   mapEl,
   state,
@@ -27,13 +32,15 @@ const map = createMap(
 const ui = createUi(
   (spacing) => {
     state.spacing = spacing;
-    map.setCircles(state.spacing, state.count);
-    writeUrl(state);
+    redrawFromState();
   },
   (count) => {
     state.count = count;
-    map.setCircles(state.spacing, state.count);
-    writeUrl(state);
+    redrawFromState();
+  },
+  (steps) => {
+    state.steps = steps;
+    redrawFromState();
   },
 );
 

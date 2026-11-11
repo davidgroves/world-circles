@@ -2,6 +2,7 @@ import L from "leaflet";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import { geodesicRing, ringSpansAntimeridian } from "./geodesicRing";
 import type { AppState } from "./state";
 
 // Vite-friendly default marker icons
@@ -14,7 +15,7 @@ L.Icon.Default.mergeOptions({
 
 export type MapController = {
   setCentre: (centre: { lat: number; lng: number } | null) => void;
-  setCircles: (spacing: number, count: number) => void;
+  setCircles: (spacing: number, count: number, steps: number) => void;
   getView: () => { lat: number; lng: number; zoom: number };
 };
 
@@ -40,6 +41,7 @@ export function createMap(
   let centre: { lat: number; lng: number } | null = initial.centre;
   let spacing = initial.spacing;
   let count = initial.count;
+  let steps = initial.steps;
   let suppressViewEvent = false;
 
   function redrawCircles(): void {
@@ -47,13 +49,15 @@ export function createMap(
     if (!centre) return;
 
     for (let i = 1; i <= count; i++) {
-      L.circle([centre.lat, centre.lng], {
-        radius: spacing * i,
+      const ring = geodesicRing(centre.lat, centre.lng, spacing * i, steps);
+      const crossesAntimeridian = ringSpansAntimeridian(ring);
+
+      L.polygon(ring, {
         color: "#1a5f7a",
         weight: 2,
         opacity: 0.85,
         fillColor: "#1a5f7a",
-        fillOpacity: 0.04,
+        fillOpacity: crossesAntimeridian ? 0 : 0.04,
       }).addTo(circles);
     }
   }
@@ -70,9 +74,14 @@ export function createMap(
     redrawCircles();
   }
 
-  function setCircles(nextSpacing: number, nextCount: number): void {
+  function setCircles(
+    nextSpacing: number,
+    nextCount: number,
+    nextSteps: number,
+  ): void {
     spacing = nextSpacing;
     count = nextCount;
+    steps = nextSteps;
     redrawCircles();
   }
 
