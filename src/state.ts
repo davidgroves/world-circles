@@ -21,7 +21,7 @@ export const DEFAULTS: AppState = {
 export const SPACING_MIN = 100;
 export const SPACING_MAX = 50_000;
 export const COUNT_MIN = 1;
-export const COUNT_MAX = 20;
+export const COUNT_MAX = 500;
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 19;
 

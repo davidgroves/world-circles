@@ -12,6 +12,16 @@ export type UiController = {
   sync: (state: AppState) => void;
 };
 
+/** Show kilometres once spacing is strictly greater than 1000 m. */
+function usesKm(metres: number): boolean {
+  return metres > 1000;
+}
+
+function formatMetresAsKm(metres: number): string {
+  const km = metres / 1000;
+  return km.toFixed(3).replace(/\.?0+$/, "");
+}
+
 export function createUi(
   onSpacing: (spacing: number) => void,
   onCount: (count: number) => void,
@@ -20,14 +30,36 @@ export function createUi(
   const countRange = document.querySelector<HTMLInputElement>("#count");
   const spacingNumber = document.querySelector<HTMLInputElement>("#spacing-number");
   const countNumber = document.querySelector<HTMLInputElement>("#count-number");
+  const spacingUnit = document.querySelector<HTMLElement>(".unit");
 
-  if (!spacingRange || !countRange || !spacingNumber || !countNumber) {
+  if (
+    !spacingRange ||
+    !countRange ||
+    !spacingNumber ||
+    !countNumber ||
+    !spacingUnit
+  ) {
     throw new Error("Missing control elements");
   }
 
-  function showSpacing(spacing: number): void {
-    spacingRange!.value = String(spacing);
-    spacingNumber!.value = String(spacing);
+  function showSpacing(metres: number): void {
+    spacingRange!.value = String(metres);
+
+    if (usesKm(metres)) {
+      spacingNumber!.value = formatMetresAsKm(metres);
+      spacingNumber!.min = formatMetresAsKm(SPACING_MIN);
+      spacingNumber!.max = formatMetresAsKm(SPACING_MAX);
+      spacingNumber!.step = "0.001";
+      spacingNumber!.setAttribute("aria-label", "Spacing in kilometres");
+      spacingUnit!.textContent = "km";
+    } else {
+      spacingNumber!.value = String(metres);
+      spacingNumber!.min = String(SPACING_MIN);
+      spacingNumber!.max = String(SPACING_MAX);
+      spacingNumber!.step = "1";
+      spacingNumber!.setAttribute("aria-label", "Spacing in metres");
+      spacingUnit!.textContent = "m";
+    }
   }
 
   function showCount(count: number): void {
@@ -35,8 +67,17 @@ export function createUi(
     countNumber!.value = String(count);
   }
 
-  function commitSpacing(raw: number): void {
-    const spacing = clampSpacing(raw);
+  function parseSpacingInput(): number | null {
+    const raw = Number(spacingNumber!.value);
+    if (!Number.isFinite(raw)) return null;
+    if (spacingUnit!.textContent === "km") {
+      return Math.round(raw * 1000);
+    }
+    return Math.round(raw);
+  }
+
+  function commitSpacingMetres(metres: number): void {
+    const spacing = clampSpacing(metres);
     showSpacing(spacing);
     onSpacing(spacing);
   }
@@ -48,7 +89,7 @@ export function createUi(
   }
 
   spacingRange.addEventListener("input", () => {
-    commitSpacing(Number(spacingRange.value));
+    commitSpacingMetres(Number(spacingRange.value));
   });
 
   countRange.addEventListener("input", () => {
@@ -56,12 +97,12 @@ export function createUi(
   });
 
   spacingNumber.addEventListener("change", () => {
-    const raw = Number(spacingNumber.value);
-    if (!Number.isFinite(raw)) {
+    const metres = parseSpacingInput();
+    if (metres === null) {
       showSpacing(Number(spacingRange.value));
       return;
     }
-    commitSpacing(raw);
+    commitSpacingMetres(metres);
   });
 
   countNumber.addEventListener("change", () => {
@@ -81,10 +122,9 @@ export function createUi(
     if (e.key === "Enter") countNumber.blur();
   });
 
-  spacingNumber.min = String(SPACING_MIN);
-  spacingNumber.max = String(SPACING_MAX);
   countNumber.min = String(COUNT_MIN);
   countNumber.max = String(COUNT_MAX);
+  countRange.max = String(COUNT_MAX);
 
   return {
     sync(state: AppState) {
