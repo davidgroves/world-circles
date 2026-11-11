@@ -8,8 +8,10 @@ export type AppState = {
   spacing: number;
   /** Number of concentric rings. */
   count: number;
-  /** Vertices sampled per geodesic ring. */
+  /** Vertices sampled per geodesic ring (used when wgs84 is on). */
   steps: number;
+  /** When true, draw WGS84 geodesic polygons; otherwise Leaflet circles. */
+  wgs84: boolean;
 };
 
 export const DEFAULTS: AppState = {
@@ -19,6 +21,7 @@ export const DEFAULTS: AppState = {
   spacing: 1000,
   count: 5,
   steps: 128,
+  wgs84: false,
 };
 
 export const SPACING_MIN = 100;
@@ -50,6 +53,14 @@ function parseNumber(value: string | null): number | null {
   if (value === null || value === "") return null;
   const n = Number(value);
   return Number.isFinite(n) ? n : null;
+}
+
+function parseBool(value: string | null): boolean | null {
+  if (value === null) return null;
+  const v = value.trim().toLowerCase();
+  if (v === "1" || v === "true" || v === "yes" || v === "on") return true;
+  if (v === "0" || v === "false" || v === "no" || v === "off") return false;
+  return null;
 }
 
 export function parseUrl(search = window.location.search): AppState {
@@ -88,6 +99,9 @@ export function parseUrl(search = window.location.search): AppState {
   const steps = parseNumber(params.get("steps"));
   if (steps !== null) state.steps = clampSteps(steps);
 
+  const wgs84 = parseBool(params.get("wgs84"));
+  if (wgs84 !== null) state.wgs84 = wgs84;
+
   return state;
 }
 
@@ -98,7 +112,10 @@ export function writeUrl(state: AppState): void {
   params.set("z", String(state.zoom));
   params.set("spacing", String(state.spacing));
   params.set("count", String(state.count));
-  params.set("steps", String(state.steps));
+  params.set("wgs84", state.wgs84 ? "1" : "0");
+  if (state.wgs84) {
+    params.set("steps", String(state.steps));
+  }
 
   if (state.centre) {
     params.set("lat", state.centre.lat.toFixed(6));

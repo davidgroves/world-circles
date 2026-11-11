@@ -29,6 +29,7 @@ export function createUi(
   onSpacing: (spacing: number) => void,
   onCount: (count: number) => void,
   onSteps: (steps: number) => void,
+  onWgs84: (wgs84: boolean) => void,
 ): UiController {
   const spacingRange = document.querySelector<HTMLInputElement>("#spacing");
   const countRange = document.querySelector<HTMLInputElement>("#count");
@@ -36,6 +37,8 @@ export function createUi(
   const spacingNumber = document.querySelector<HTMLInputElement>("#spacing-number");
   const countNumber = document.querySelector<HTMLInputElement>("#count-number");
   const stepsNumber = document.querySelector<HTMLInputElement>("#steps-number");
+  const wgs84Input = document.querySelector<HTMLInputElement>("#wgs84");
+  const stepsControl = document.querySelector<HTMLElement>("#steps-control");
   const spacingUnit = document.querySelector<HTMLElement>(".unit");
 
   if (
@@ -45,9 +48,17 @@ export function createUi(
     !spacingNumber ||
     !countNumber ||
     !stepsNumber ||
+    !wgs84Input ||
+    !stepsControl ||
     !spacingUnit
   ) {
     throw new Error("Missing control elements");
+  }
+
+  function setStepsEnabled(enabled: boolean): void {
+    stepsControl!.hidden = !enabled;
+    stepsRange!.disabled = !enabled;
+    stepsNumber!.disabled = !enabled;
   }
 
   function showSpacing(metres: number): void {
@@ -146,6 +157,12 @@ export function createUi(
     commitSteps(raw);
   });
 
+  wgs84Input.addEventListener("change", () => {
+    const enabled = wgs84Input.checked;
+    setStepsEnabled(enabled);
+    onWgs84(enabled);
+  });
+
   spacingNumber.addEventListener("keydown", (e) => {
     if (e.key === "Enter") spacingNumber.blur();
   });
@@ -172,6 +189,8 @@ export function createUi(
       showSpacing(state.spacing);
       showCount(state.count);
       showSteps(state.steps);
+      wgs84Input.checked = state.wgs84;
+      setStepsEnabled(state.wgs84);
     },
   };
 }

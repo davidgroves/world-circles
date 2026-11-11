@@ -10,7 +10,12 @@ if (!mapEl) throw new Error("Missing #map");
 const state: AppState = parseUrl();
 
 function redrawFromState(): void {
-  map.setCircles(state.spacing, state.count, state.steps);
+  map.setCircles({
+    spacing: state.spacing,
+    count: state.count,
+    steps: state.steps,
+    wgs84: state.wgs84,
+  });
   writeUrl(state);
 }
 
@@ -40,6 +45,10 @@ const ui = createUi(
   },
   (steps) => {
     state.steps = steps;
+    redrawFromState();
+  },
+  (wgs84) => {
+    state.wgs84 = wgs84;
     redrawFromState();
   },
 );

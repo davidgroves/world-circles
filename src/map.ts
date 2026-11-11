@@ -13,9 +13,24 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
+const RING_STYLE = {
+  color: "#1a5f7a",
+  weight: 2,
+  opacity: 0.85,
+  fillColor: "#1a5f7a",
+  fillOpacity: 0.04,
+} as const;
+
+export type CircleOptions = {
+  spacing: number;
+  count: number;
+  steps: number;
+  wgs84: boolean;
+};
+
 export type MapController = {
   setCentre: (centre: { lat: number; lng: number } | null) => void;
-  setCircles: (spacing: number, count: number, steps: number) => void;
+  setCircles: (options: CircleOptions) => void;
   getView: () => { lat: number; lng: number; zoom: number };
 };
 
@@ -42,6 +57,7 @@ export function createMap(
   let spacing = initial.spacing;
   let count = initial.count;
   let steps = initial.steps;
+  let wgs84 = initial.wgs84;
   let suppressViewEvent = false;
 
   function redrawCircles(): void {
@@ -49,16 +65,20 @@ export function createMap(
     if (!centre) return;
 
     for (let i = 1; i <= count; i++) {
-      const ring = geodesicRing(centre.lat, centre.lng, spacing * i, steps);
-      const crossesAntimeridian = ringSpansAntimeridian(ring);
+      const radius = spacing * i;
 
-      L.polygon(ring, {
-        color: "#1a5f7a",
-        weight: 2,
-        opacity: 0.85,
-        fillColor: "#1a5f7a",
-        fillOpacity: crossesAntimeridian ? 0 : 0.04,
-      }).addTo(circles);
+      if (wgs84) {
+        const ring = geodesicRing(centre.lat, centre.lng, radius, steps);
+        L.polygon(ring, {
+          ...RING_STYLE,
+          fillOpacity: ringSpansAntimeridian(ring) ? 0 : RING_STYLE.fillOpacity,
+        }).addTo(circles);
+      } else {
+        L.circle([centre.lat, centre.lng], {
+          radius,
+          ...RING_STYLE,
+        }).addTo(circles);
+      }
     }
   }
 
@@ -74,14 +94,11 @@ export function createMap(
     redrawCircles();
   }
 
-  function setCircles(
-    nextSpacing: number,
-    nextCount: number,
-    nextSteps: number,
-  ): void {
-    spacing = nextSpacing;
-    count = nextCount;
-    steps = nextSteps;
+  function setCircles(options: CircleOptions): void {
+    spacing = options.spacing;
+    count = options.count;
+    steps = options.steps;
+    wgs84 = options.wgs84;
     redrawCircles();
   }
 

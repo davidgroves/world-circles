@@ -31,6 +31,7 @@ Live site: https://davidgroves.github.io/world-circles/
 | `z` | Zoom |
 | `spacing` | Ring spacing in metres |
 | `count` | Number of rings |
-| `steps` | Vertices sampled per geodesic ring (8–512) |
+| `wgs84` | `1` for WGS84 geodesic rings; `0` (default) for Leaflet circles |
+| `steps` | Vertices per geodesic ring (8–512); only when `wgs84=1` |
 
-Rings are drawn as WGS84 geodesic polygons via GeographicLib.
+With **WGS84** off, rings use Leaflet’s spherical `L.circle`. With it on, rings are GeographicLib WGS84 geodesic polygons and the Steps control is available.

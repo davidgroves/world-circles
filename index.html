@@ -62,7 +62,14 @@
             aria-label="Circles slider"
           />
         </div>
-        <div class="control">
+        <label class="control checkbox-control" for="wgs84">
+          <span class="control-label">
+            <span>WGS84</span>
+            <input id="wgs84" type="checkbox" />
+          </span>
+          <span class="checkbox-hint">Ellipsoid geodesic rings</span>
+        </label>
+        <div class="control" id="steps-control" hidden>
           <div class="control-label">
             <label for="steps">Steps</label>
             <input
@@ -74,6 +81,7 @@
               value="128"
               inputmode="numeric"
               aria-label="Steps per circle"
+              disabled
             />
           </div>
           <input
@@ -84,6 +92,7 @@
             step="1"
             value="128"
             aria-label="Steps per circle slider"
+            disabled
           />
         </div>
       </aside>
